@@ -1,15 +1,14 @@
 ---
-title: 'TITLE X'
-subtitle: 'Supplemental materials for submittal to X'
+title: 'Implementing solutions: A review exploring determinants for the implementation of solutions to food-energy-water system challenges'
+subtitle: 'Supplemental materials for submittal to Frontiers in Environmental Science'
 author: 
   - Paula Williams
-  - J. Leah Jones-Crank
-  - Bassel Daher
-  - Alyssa Thomas
-  - Erich Seamon
+  - Jamie Trammell
+  - Leah Jones-Crank
   - Ruchie Pathak
+  - Erich Seamon
+  - Alyssa Thomas
   - Dan Cronan
-  - Meghna Babbar-Sebens
   - Andrew Kliskey
 date: "`r Sys.Date()`"
 always_allow_html: yes
@@ -2379,6 +2378,148 @@ rpart.plot(tree_model, type = 2, extra = 1, under = TRUE,
 # Fidelity to forest probs (lower Brier is better)
 mean((predict(tree_model, crcdata) - pY)^2)
 
+
+```
+
+\newpage
+
+## Representative Decision Tree Plot - All variables
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+library(rpart)
+library(rpart.plot)
+
+set.seed(2223)
+
+crcdata$solution_proposed_YN <- factor(crcdata$solution_proposed_YN, levels = c("N", "Y"))
+
+crcdata_renamed <- crcdata
+
+colnames(crcdata_renamed) <- c("Year", "Solution Proposed", "Solution Implemented", "Tech", "Policy", "Institutional", "Social", "Economic", "Ecological", "Educational", "Was a model used?", "NGO Researchers", "Engineering Researchers", "Math Researchers", "Computer Science Researchers", "Physics Researchers", "Interdisiplinary Researchers", "Social Science Researchers", "Economics Researchers", "Agriculture Researchers", "Other Researchers", "Were Stakeholders Engaged?", "Farmer Stakeholders", "Combined Government Stakeholders", "Tribal Stakeholders", "Combined Coalition Stakeholders", "Combined Industry Stakeholders", "Migrant Stakeholders", "Youth Stakeholders", "Public Stakeholders", "University Stakeholders", "Expert Stakeholders", "Ghodsvali Nominal Engagment", "Ghodsvali Instrumental Engagement", "Ghodsvali Representation Engagement", "Ghodsvali Transformative Engagement", "Non-Descriptive Geography", "Local Geography", "Regional Geography", "National Geography", "Multinational Geography", "Global Geography", "Geography Not Available", "Study Nationality", "Study Region", "Study Region Draft1","Study Combined Region Draft2", "Stakeholder Diversity Ratio", "Researcher Stakeholder Ratio", "Study Combined Region")
+
+ctrl <- trainControl(
+  method = "cv",
+  number = 5,
+  classProbs = TRUE,
+  summaryFunction = twoClassSummary,
+  savePredictions = "final"
+)
+
+
+library(caret)
+
+# make sure the outcome is a 2-class factor and set the positive class first
+# crcdata_renamed$`Solution Proposed` <- relevel(
+#   factor(crcdata_renamed$`Solution Proposed`), ref = "Yes"  # <-- your positive class
+# )
+
+# List your predictors (leave OUT the outcome)
+x <- c("Year","Tech","Policy","Institutional","Social",
+       "Economic","Ecological","Educational","Was a model used?","NGO Researchers",
+       "Engineering Researchers","Math Researchers","Computer Science Researchers",
+       "Physics Researchers","Interdisiplinary Researchers","Social Science Researchers",
+       "Economics Researchers","Agriculture Researchers","Other Researchers",
+       "Were Stakeholders Engaged?","Farmer Stakeholders","Combined Government Stakeholders",
+       "Tribal Stakeholders","Combined Coalition Stakeholders","Combined Industry Stakeholders",
+       "Migrant Stakeholders","Youth Stakeholders","Public Stakeholders","University Stakeholders",
+       "Expert Stakeholders","Ghodsvali Nominal Engagment","Ghodsvali Instrumental Engagement",
+       "Ghodsvali Representation Engagement","Ghodsvali Transformative Engagement",
+       "Non-Descriptive Geography","Local Geography","Regional Geography","National Geography",
+       "Multinational Geography","Global Geography","Geography Not Available",
+       "Stakeholder Diversity Ratio","Researcher Stakeholder Ratio","Study Combined Region")
+
+# Build a properly quoted formula
+f <- reformulate(sprintf("`%s`", x), response = "`Solution Proposed`")
+
+library(dplyr)
+
+crcdata_renamed <- crcdata_renamed %>%
+  select(`Solution Proposed`,
+         where(~ all(!is.na(.))))
+
+
+# TrainControl for ROC
+ctrl <- trainControl(method = "cv", number = 5,
+                     classProbs = TRUE, summaryFunction = twoClassSummary)
+
+rf_weighted <- train(
+  f, data = crcdata_renamed,
+  method = "ranger",
+  trControl = ctrl,
+  tuneGrid = expand.grid(mtry = 2, splitrule = "gini",
+                         min.node.size = c(20, 30, 40)),
+  num.trees = 1000,
+  importance = "impurity",
+  metric = "ROC"
+)
+# 
+# 
+# rf_weighted <- train(Solution Proposed ~ Year+Solution Proposed+Solution Implemented+Tech+Policy+Institutional+Social+Economic+Ecological+Educational+Was a model used?+NGO Researchers+Engineering Researchers+Math Researchers+Computer Science Researchers+Physics Researchers+Interdisiplinary Researchers+Social Science Researchers+Economics Researchers+Agriculture Researchers+Other Researchers+Were Stakeholders Engaged?+Farmer Stakeholders+Combined Government Stakeholders+Tribal Stakeholders+Combined Coalition Stakeholders+Combined Industry Stakeholders+Migrant Stakeholders+Youth Stakeholders+Public Stakeholders+University Stakeholders+Expert Stakeholders+Ghodsvali Nominal Engagment+Ghodsvali Instrumental Engagement+Ghodsvali Representation Engagement+Ghodsvali Transformative Engagement+Non-Descriptive Geography+Local Geography+Regional Geography+National Geography+Multinational Geography+Global Geography+Geography Not Available+Study Nationality+Stakeholder Diversity Ratio+Researcher Stakeholder Ratio+Study Combined Region,  
+#   data = crcdata_renamed,
+#   method = "ranger",
+#   trControl = ctrl,
+#   tuneGrid = expand.grid(
+#     mtry = 2,
+#     splitrule = "gini",
+#     min.node.size = c(20,30,40)
+#   ),
+#   num.trees = 1000,
+#   importance = "impurity",
+#   metric = "ROC"
+# )
+
+# 
+# 
+# rf_weighted <- train(
+#   solution_proposed_YN ~R_ngo+R_eng+R_math+R_compsci+R_phys+R_interdis+R_socsci+R_economics+R_ag+R_other+STE_G_nominal+STE_G_instrumental+STE_G_representation+STE_G_transformative+ST_combined_gov+ST_tribal+ST_combined_coalition+ST_combined_industry+ST_migrants+ST_youth+ST_public+ST_university+ST_experts+G_local+G_regional+G_national+G_multinational+G_global+year+L_region_3+ST_ratio+R_ratio,
+#   data = crcdata,
+#   method = "ranger",
+#   trControl = ctrl,
+#   tuneGrid = expand.grid(
+#     mtry = 2,
+#     splitrule = "gini",
+#     min.node.size = c(20,30,40)
+#   ),
+#   num.trees = 1000,
+#   importance = "impurity",
+#   metric = "ROC"
+# )
+
+
+probs <- predict(rf_weighted, newdata = crcdata_renamed, type = "prob")
+pos   <- if ("Y" %in% colnames(probs)) "Y" else colnames(probs)[2]
+pY    <- probs[[pos]]
+
+
+tree_model <- rpart(
+  f,
+  data   = crcdata_renamed,
+  method = "anova",
+  control = rpart.control(cp = 0.001, minbucket = 10, maxdepth = 5)
+)
+
+jpeg("tree_highres_2.jpg", width = 6000, height = 4000, res = 600)  # large canvas + 600 dpi
+
+rpart.plot(tree_model,
+           type = 2,
+           extra = 1,
+           under = TRUE,
+           fallen.leaves = TRUE,
+           faclen = 0,
+           digits = 3,
+           box.palette = "GnBu",
+           main = "Representative Tree",
+           cex = 1)   # adjust text scaling (try 0.8–1.2)
+dev.off()
+
+
+rpart.plot(tree_model, type = 2, extra = 1, under = TRUE,
+           fallen.leaves = TRUE, faclen = 0, digits = 3, box.palette = "GnBu",
+           main = "Representative Tree")
+
+# Fidelity to forest probs (lower Brier is better)
+#mean((predict(tree_model, crcdata) - pY)^2)
 
 ```
 
