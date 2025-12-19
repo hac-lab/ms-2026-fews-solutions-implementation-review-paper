@@ -5,8 +5,8 @@ author:
   - Paula Williams
   - Jamie Trammell
   - Leah Jones-Crank
-  - Ruchie Pathak
   - Erich Seamon
+  - Ruchie Pathak
   - Alyssa Thomas
   - Dan Cronan
   - Andrew Kliskey
@@ -160,7 +160,7 @@ assocstats(solution_stakeholder)
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 ggplot(crcdata,aes(x=solution_proposed_YN, fill=year)) + ggtitle("Solution Proposed: Y=18") + labs(x="Was a solution proposed?") +
-  geom_bar(stat = "count", position = "dodge", fill="#99CC99") + theme_minimal() + theme_minimal()+
+  geom_bar(stat = "count", position = "dodge", fill="#99CC99") + theme_minimal() + theme_bw()+
   theme(text = element_text(),
         axis.text.x = element_text(angle = 0, hjust = 1)) 
 
@@ -171,7 +171,7 @@ ggplot(crcdata,aes(x=solution_proposed_YN, fill=year)) + ggtitle("Solution Propo
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 
-ggplot(crcdata,aes(x=solution_implemented_YN, fill=year)) + ggtitle("Solution Implemented: Y=11") + labs(x="Was a solution implemented?") + geom_bar(stat = "count", position = "dodge", fill="#99CC99") + theme_minimal()+
+ggplot(crcdata,aes(x=solution_implemented_YN, fill=year)) + ggtitle("Solution Implemented: Y=11") + labs(x="Was a solution implemented?") + geom_bar(stat = "count", position = "dodge", fill="#99CC99") + theme_bw()+
   theme(text = element_text(),
         axis.text.x = element_text(angle = 0, hjust = 1)) 
 
@@ -211,7 +211,7 @@ ggplot(p3a, aes(x=group, y=plot3_data)) + geom_bar(stat="identity",fill="#99CC99
 #barplot(table(crcdata$S_stakeholder_engagement_YN), main = "Stakeholder engagement: Y=92")
 
 ggplot(crcdata,aes(x=S_stakeholder_engagement_YN, fill=year)) + ggtitle("Stakeholder Engagement: YES=92") + labs(x="Were stakeholders engaged?") +
-  geom_bar(stat = "count", position = "dodge", fill="#99CC99") + theme_minimal()
+  geom_bar(stat = "count", position = "dodge", fill="#99CC99") + theme_bw()
 
 ```
 \newpage
@@ -223,8 +223,25 @@ ggplot(crcdata,aes(x=S_stakeholder_engagement_YN, fill=year)) + ggtitle("Stakeho
 crcdata_remove2011 <- subset(crcdata, year != "2011")
 ggplot(crcdata_remove2011, aes(x=year)) + 
     geom_bar(stat="count")+theme_bw() + scale_x_continuous(breaks = crcdata$year) +
-  geom_bar(stat = "count", position = "dodge", fill="#99CC99") + theme_minimal()+theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+  geom_bar(stat = "count", position = "dodge", fill="#99CC99") + theme_bw()+theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
+p <- ggplot(crcdata_remove2011, aes(x = year)) +
+  geom_bar(stat = "count", fill = "#99CC99") +
+  labs(title = "All FEWS Papers by Year", x = "Year", y = "Count") +
+  theme_minimal() +
+  theme(
+    plot.title  = element_text(hjust = 0.5),
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)
+  ) +
+  scale_x_continuous(breaks = sort(unique(crcdata_remove2011$year)))
+
+ggsave(
+  filename = "./images/fews_year.png",
+  plot = p,
+  device = "png",
+  width = 7, height = 4, units = "in",
+  dpi = 600
+)
 
 ```
 
@@ -2499,7 +2516,7 @@ tree_model <- rpart(
   control = rpart.control(cp = 0.001, minbucket = 10, maxdepth = 5)
 )
 
-jpeg("tree_highres_2.jpg", width = 6000, height = 4000, res = 600)  # large canvas + 600 dpi
+jpeg("./images/rep_tree.jpg", width = 6000, height = 4000, res = 600)  # large canvas + 600 dpi
 
 rpart.plot(tree_model,
            type = 2,
