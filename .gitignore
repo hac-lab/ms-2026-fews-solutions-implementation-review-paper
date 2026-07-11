@@ -2,3 +2,12 @@
 .Rhistory
 .RData
 .Ruserdata
+
+# R and RStudio
+.Rproj.user/
+# HACLab migration metadata
+.haclab_migration_source.tsv
+# Temporary files
+.DS_Store
+*.log
+*.tmp
